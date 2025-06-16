@@ -186,7 +186,7 @@ fn main() {
         let css = CssProvider::new();
         css.load_from_data("
             window {
-                background: rgba(31, 31, 31, 0.83);
+                background: rgba(0, 0, 0, 0.38);
                 border: 2px solid rgba(82, 82, 82, 0.29);
                 border-radius: 20px;
             }
