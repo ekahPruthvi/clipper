@@ -23,7 +23,13 @@ fn main() {
 
         let vbox = GtkBox::new(Orientation::Vertical, 5);
         let listbox = ListBox::new();
-        listbox.set_selection_mode(gtk4::SelectionMode::None);
+        listbox.set_selection_mode(gtk4::SelectionMode::Single);
+
+        let head = Label::new(Some("clipper"));
+        head.set_widget_name("head");
+        head.set_justify(gtk4::Justification::Left);
+        head.set_halign(gtk4::Align::Start);
+        head.set_margin_start(20);
 
         if let Ok(output) = Command::new("cliphist").arg("list").output() {
             let entries = String::from_utf8_lossy(&output.stdout);
@@ -119,6 +125,10 @@ fn main() {
             .vexpand(true)
             .child(&listbox)
             .build();
+        scroll.set_vscrollbar_policy(gtk4::PolicyType::Automatic);
+        scroll.set_hscrollbar_policy(gtk4::PolicyType::Never);
+        scroll.set_css_classes(&["scroller"]);
+        listbox.set_css_classes(&["listbox"]);
 
         let wipe_button = Button::with_label("Wipe All");
         let window_clone = window.clone();
@@ -142,6 +152,7 @@ fn main() {
             dialog.show();
         });
 
+        vbox.append(&head);
         vbox.append(&scroll);
         vbox.append(&wipe_button);
         window.set_child(Some(&vbox));
@@ -160,14 +171,71 @@ fn main() {
         // Styling
         let css = CssProvider::new();
         css.load_from_data("
+            window {
+                background: rgba(31, 31, 31, 0.83);
+                border: 2px solid rgba(82, 82, 82, 0.29);
+                border-radius: 20px;
+            }
+
+            .listbox {
+                background-color:rgba(0, 0, 0, 0);
+                border-radius: 20px;
+            }
+
+            .listbox > row{
+                all:unset;
+                margin: 5px;
+                padding: 2px;
+                border-radius: 5px;
+                background-color:rgba(65, 65, 65, 0.14);
+                min-height: 50px;
+                font-weight: 700;
+            }
+
+            .listbox > row:hover {
+                background-color:rgba(65, 65, 65, 0.29);
+                border-bottom: 0.5px solid black;
+            }
+
+            .scroller{
+                background: rgba(0, 0, 0, 0.36);
+                border-radius: 15px;
+                border: 2px solid rgba(82, 82, 82, 0.29);
+                margin: 5px;
+            }
+
+            .scroller scrollbar {
+                opacity: 0;
+                min-width: 0;
+                min-height: 0;
+            } 
+
             button {
-                margin: 6px;
-                padding: 6px;
+                all:unset;
+                transform: scale(1.0);
+                transition: background 0.2s ease, transform 0.2s ease;
+                margin: 0px;
+                padding: 16px;
                 font-weight: bold;
             }
+
+            button:hover {
+                background: rgba(228, 228, 228, 0.1);
+                transform: scale(1.1);
+                font-weight: 800;
+            }
+
             label {
                 padding: 4px;
             }
+
+            #head {
+                margin-top: 7px;
+                font-size: 20px;
+                font-weight: bold;
+                color: rgba(255, 255, 255, 0.64);
+            }      
+
         ");
         if let Some(display) = gtk4::gdk::Display::default() {
             gtk4::style_context_add_provider_for_display(
