@@ -85,6 +85,9 @@ fn main() {
                         let label = Label::new(Some(&content));
                         label.set_wrap(true);
                         label.set_xalign(0.0);
+                        label.set_hexpand(true);
+                        // label.set_max_width_chars(60);
+                        label.set_wrap_mode(gtk4::pango::WrapMode::WordChar);
                         hbox.append(&label);
                     }
 
@@ -196,20 +199,21 @@ fn main() {
             .listbox > row{
                 all:unset;
                 margin: 5px;
-                padding: 2px;
-                border-radius: 5px;
-                background-color:rgba(65, 65, 65, 0.14);
+                padding: 12px;
+                border-radius: 8px;
+                background-color:rgba(65, 65, 65, 0.25);
                 min-height: 50px;
-                font-weight: 200;
+                font-weight: 300;
+                font-size: 14px;
             }
 
             .listbox > row:hover {
-                background-color:rgba(65, 65, 65, 0.29);
+                background-color:rgba(65, 65, 65, 0.38);
                 border-bottom: 0.5px solid black;
             }
 
             .scroller{
-                background: rgba(0, 0, 0, 0.36);
+                background: rgba(0, 0, 0, 0.15);
                 border-radius: 15px;
                 border: 2px solid rgba(82, 82, 82, 0.29);
                 margin: 5px;
@@ -249,7 +253,7 @@ fn main() {
 
             label {
                 color: rgb(255, 255, 255);
-                padding: 4px;
+                font-family : 'Cantarell'; 
             }
 
             #head {
