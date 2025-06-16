@@ -1,7 +1,7 @@
 use gtk4::prelude::*;
 use gtk4::{
     Application, ApplicationWindow, Box as GtkBox, Button, Label, ListBox, ListBoxRow,
-    Orientation, ScrolledWindow, CssProvider, GestureClick, Picture, Frame, EventControllerKey,
+    Orientation, ScrolledWindow, CssProvider, GestureClick, Picture, Frame, EventControllerKey, Image
 };
 use std::io::{Write, BufReader, Read};
 use std::process::{Command, Stdio, exit};
@@ -86,7 +86,6 @@ fn main() {
                         label.set_wrap(true);
                         label.set_xalign(0.0);
                         label.set_hexpand(true);
-                        // label.set_max_width_chars(60);
                         label.set_wrap_mode(gtk4::pango::WrapMode::WordChar);
                         hbox.append(&label);
                     }
@@ -133,6 +132,25 @@ fn main() {
         scroll.set_hscrollbar_policy(gtk4::PolicyType::Never);
         scroll.set_css_classes(&["scroller"]);
         listbox.set_css_classes(&["listbox"]);
+
+        if listbox.first_child().is_none(){
+            let image = Image::from_icon_name("clipper");
+            let empty = Label::new(None);
+            empty.set_markup("<b>Clipper is empty</b>\ncopy to show here");
+            empty.set_widget_name("empty_message");
+            empty.set_justify(gtk4::Justification::Center);
+            image.set_pixel_size(86);
+            image.set_css_classes(&["iconn"]);
+
+            let empty_message_box = GtkBox::new(Orientation::Vertical, 10);
+            empty_message_box.set_halign(gtk4::Align::Center);
+            empty_message_box.set_valign(gtk4::Align::Center);
+
+
+            empty_message_box.append(&image);
+            empty_message_box.append(&empty);
+            scroll.set_child(Some(&empty_message_box));
+        }
 
         let wipe_button = Button::with_label("clear clipboard");
         wipe_button.add_css_class("wipe-button");
@@ -262,6 +280,14 @@ fn main() {
                 font-weight: bold;
                 color: rgba(255, 255, 255, 0.91);
             }      
+
+            .iconn {
+                color: rgba(255, 255, 255, 0.86);
+            }
+
+            #empty_message {
+                color: rgba(255, 255, 255, 0.25);
+            }
 
         ");
         if let Some(display) = gtk4::gdk::Display::default() {
