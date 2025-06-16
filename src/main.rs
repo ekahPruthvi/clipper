@@ -1,11 +1,12 @@
 use gtk4::prelude::*;
 use gtk4::{
     Application, ApplicationWindow, Box as GtkBox, Button, Label, ListBox, ListBoxRow,
-    Orientation, ScrolledWindow, CssProvider, MessageDialog, MessageType, GestureClick, Picture, Frame,
-    ButtonsType, ResponseType, EventControllerKey,
+    Orientation, ScrolledWindow, CssProvider, GestureClick, Picture, Frame, EventControllerKey,
 };
 use std::io::{Write, BufReader, Read};
 use std::process::{Command, Stdio, exit};
+use std::rc::Rc;
+use std::cell::RefCell;
 
 fn main() {
     let app = Application::builder()
@@ -130,26 +131,36 @@ fn main() {
         scroll.set_css_classes(&["scroller"]);
         listbox.set_css_classes(&["listbox"]);
 
-        let wipe_button = Button::with_label("Wipe All");
-        let window_clone = window.clone();
+        let wipe_button = Button::with_label("clear clipboard");
+        wipe_button.add_css_class("wipe-button");
+        let wipe_button_clone = wipe_button.clone();
+
+        let confirming = Rc::new(RefCell::new(false));
+        let confirming_clone = confirming.clone();
+
         wipe_button.connect_clicked(move |_| {
-            let dialog = MessageDialog::builder()
-                .transient_for(&window_clone)
-                .modal(true)
-                .message_type(MessageType::Question)
-                .buttons(ButtonsType::YesNo)
-                .text("Clear clipboard history?")
-                .build();
+            let mut is_confirming = confirming_clone.borrow_mut();
+            // First click → Change to "Confirm?" and update callback
+            if *is_confirming {
+                // If we're already confirming, proceed to wipe
+                let _ = Command::new("cliphist").arg("wipe").output();
+                exit(0);
+            } else {
+                // Enter confirm mode
+                *is_confirming = true;
+                wipe_button_clone.set_label("yes");
+                wipe_button_clone.add_css_class("confirming");
 
-            dialog.connect_response(move |d, resp| {
-                if resp == ResponseType::Yes {
-                    let _ = Command::new("cliphist").arg("wipe").output();
-                    exit(0);
-                }
-                d.close();
-            });
-
-            dialog.show();
+                // Reset after 4 seconds
+                let wipe_button_reset = wipe_button_clone.clone();
+                let confirming_reset = confirming_clone.clone();
+                gtk4::glib::timeout_add_seconds_local(3, move || {
+                    wipe_button_reset.set_label("clear clipboard");
+                    wipe_button_reset.remove_css_class("confirming");
+                    *confirming_reset.borrow_mut() = false;
+                    gtk4::glib::ControlFlow::Break
+                });
+            }
         });
 
         vbox.append(&head);
@@ -189,7 +200,7 @@ fn main() {
                 border-radius: 5px;
                 background-color:rgba(65, 65, 65, 0.14);
                 min-height: 50px;
-                font-weight: 700;
+                font-weight: 200;
             }
 
             .listbox > row:hover {
@@ -225,7 +236,19 @@ fn main() {
                 font-weight: 800;
             }
 
+            button.wipe-button {
+                color: white;
+                transition: background-color 200ms, transform 200ms, color 200ms;
+            }
+
+            button.wipe-button.confirming {
+                background-color:rgb(248, 66, 66);
+                color: white;
+                transform: scale(1.05);
+            }
+
             label {
+                color: rgb(255, 255, 255);
                 padding: 4px;
             }
 
@@ -233,7 +256,7 @@ fn main() {
                 margin-top: 7px;
                 font-size: 20px;
                 font-weight: bold;
-                color: rgba(255, 255, 255, 0.64);
+                color: rgba(255, 255, 255, 0.91);
             }      
 
         ");
