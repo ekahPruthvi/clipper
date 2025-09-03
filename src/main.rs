@@ -10,7 +10,7 @@ use std::cell::RefCell;
 
 fn main() {
     let app = Application::builder()
-        .application_id("com.ekah.clipper")
+        .application_id("ekah.scu.clipper")
         .build();
 
     app.connect_activate(|app| {
